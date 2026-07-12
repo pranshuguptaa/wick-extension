@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Wick — Claude usage meter",
+  "version": "1.0.0",
+  "description": "Live token meter for Claude. Model-aware messages-left, reset countdown, one-click handoff to ChatGPT/Gemini/Grok.",
+  "permissions": ["storage", "alarms", "tabs"],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*",
+    "https://grok.com/*",
+    "https://usewick.online/*"
+  ],
+  "background": { "service_worker": "background/service-worker.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content/claude-injector.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://chatgpt.com/*"],
+      "js": ["content/chatgpt-injector.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://gemini.google.com/*"],
+      "js": ["content/gemini-injector.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://grok.com/*"],
+      "js": ["content/grok-injector.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_popup": "popup/popup.html" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+}

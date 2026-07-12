@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wick</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="wick-update-banner" style="display:none"></div>
+
+  <div class="header">
+    <span class="brand">Wick</span>
+    <span class="model-pill" id="model-pill">sonnet</span>
+  </div>
+
+  <div class="gauges">
+    <div class="gauge-block">
+      <div class="gauge-label">Session</div>
+      <div class="gauge-wrap">
+        <svg id="session-gauge" width="80" height="80" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#2a2118" stroke-width="7" />
+          <circle class="progress-arc" cx="50" cy="50" r="38"
+            fill="none" stroke="#f59e0b" stroke-width="7"
+            stroke-dasharray="238.76" stroke-dashoffset="238.76"
+            stroke-linecap="round"
+            transform="rotate(-90 50 50)" />
+        </svg>
+        <div class="gauge-pct" id="session-pct">—</div>
+      </div>
+      <div class="gauge-countdown" id="session-countdown">—</div>
+    </div>
+
+    <div class="gauge-block">
+      <div class="gauge-label">Weekly</div>
+      <div class="gauge-wrap">
+        <svg id="weekly-gauge" width="80" height="80" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#2a2118" stroke-width="7" />
+          <circle class="progress-arc" cx="50" cy="50" r="38"
+            fill="none" stroke="#fbbf24" stroke-width="7"
+            stroke-dasharray="238.76" stroke-dashoffset="238.76"
+            stroke-linecap="round"
+            transform="rotate(-90 50 50)" />
+        </svg>
+        <div class="gauge-pct" id="weekly-pct">—</div>
+      </div>
+      <div class="gauge-countdown" id="weekly-countdown">—</div>
+    </div>
+  </div>
+
+  <div class="messages-left">
+    <div class="big-num" id="messages-left">—</div>
+    <div class="sub" id="messages-sub">messages left</div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div class="handoff-row">
+    <button class="handoff-btn" data-dest="chatgpt">→ ChatGPT</button>
+    <button class="handoff-btn" data-dest="gemini">→ Gemini</button>
+    <button class="handoff-btn" data-dest="grok">→ Grok</button>
+  </div>
+
+  <form class="license-row" id="license-form">
+    <input id="license-key" type="text" placeholder="License key"
+           autocomplete="off" spellcheck="false" />
+    <button type="submit">Activate</button>
+  </form>
+
+  <div class="pro-badge" id="pro-badge" hidden>✓ Wick Pro active</div>
+  <div class="license-msg" id="license-msg"></div>
+
+  <div class="popup-footer">
+    <a href="https://usewick.online/privacy" target="_blank" rel="noreferrer">Privacy policy</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
