@@ -3,19 +3,16 @@
  *
  * Responsibilities:
  *   - Seed default storage on install.
- *   - Reset the daily handoff counter at local midnight (via chrome.alarms).
  *   - Open destination tabs on behalf of content scripts (content scripts
  *     cannot use chrome.tabs directly).
  *
  * Storage schema (chrome.storage.local):
  *   wick:history:{model} → number[]  (last 20 usage-fraction deltas)
- *   wick:billing         → { dailyCount, lastReset, licenseKey?, validated?, isPro }
  *   wick:pendingSnapshot → { markdown, timestamp, ttl } | null
  *   wick:onboarded       → boolean
  *   wick:orgId           → string (cached org id)
  */
 
-const DAILY_ALARM = 'wick:dailyReset';
 const UPDATE_ALARM = 'wickUpdateCheck';
 
 const WICK_VERSION = '1.0.0';
@@ -54,64 +51,34 @@ async function checkForUpdates() {
   }
 }
 
-// --- helpers ---------------------------------------------------------------
 
-function startOfTodayMs() {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return now.getTime();
-}
 
 async function ensureDefaults() {
-  const { 'wick:billing': billing, 'wick:onboarded': onboarded } =
-    await chrome.storage.local.get(['wick:billing', 'wick:onboarded']);
+  const { 'wick:onboarded': onboarded } =
+    await chrome.storage.local.get(['wick:onboarded']);
 
-  if (!billing) {
-    await chrome.storage.local.set({
-      'wick:billing': {
-        dailyCount: 0,
-        lastReset: startOfTodayMs(),
-        isPro: false,
-      },
-    });
-  }
   if (onboarded === undefined) {
     await chrome.storage.local.set({ 'wick:onboarded': false });
   }
 }
 
-async function resetDailyCountIfNeeded() {
-  const { 'wick:billing': billing } = await chrome.storage.local.get('wick:billing');
-  if (!billing) return ensureDefaults();
-  const today = startOfTodayMs();
-  if (!billing.lastReset || billing.lastReset < today) {
-    billing.dailyCount = 0;
-    billing.lastReset = today;
-    await chrome.storage.local.set({ 'wick:billing': billing });
-  }
-}
+
 
 // --- lifecycle -------------------------------------------------------------
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaults();
-  // Fire once a minute; cheap, and guarantees a same-day reset shortly after
-  // midnight even if the browser was asleep at 00:00.
-  chrome.alarms.create(DAILY_ALARM, { periodInMinutes: 30 });
   chrome.alarms.create(UPDATE_ALARM, { periodInMinutes: 360 }); // every 6h
   checkForUpdates();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureDefaults();
-  await resetDailyCountIfNeeded();
-  chrome.alarms.create(DAILY_ALARM, { periodInMinutes: 30 });
   chrome.alarms.create(UPDATE_ALARM, { periodInMinutes: 360 });
   checkForUpdates();
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === DAILY_ALARM) resetDailyCountIfNeeded();
   if (alarm.name === UPDATE_ALARM) checkForUpdates();
 });
 
@@ -129,9 +96,5 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     });
     return true; // async response
   }
-
-  if (msg.type === 'wick:resetDaily') {
-    resetDailyCountIfNeeded().then(() => sendResponse({ ok: true }));
-    return true;
-  }
 });
+

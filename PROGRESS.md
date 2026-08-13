@@ -7,13 +7,12 @@ _Last updated: 2026-07-10_
 ## Scaffolding & non-API surface (solid)
 - ✅ MV3 `manifest.json` — permissions, host perms, content scripts, popup, icons
 - ✅ `background/service-worker.js` — defaults, daily-reset alarm, opens handoff tabs
-- ✅ Popup UI (`popup.html/css/js`) — SVG arc gauges, model pill, handoff row, license field (rebuilt to spec, renders correctly)
+- ✅ Popup UI (`popup.html/css/js`) — SVG arc gauges, model pill, handoff row (rebuilt to spec, renders correctly)
 - ✅ Icons 16/48/128 PNG
 - ✅ Meter DOM injection with 3+ composer selector fallbacks + `MutationObserver` (SPA-safe)
 - ✅ Handoff → Markdown export → `wick:pendingSnapshot` → open destination tab
 - ✅ Destination injectors (ChatGPT/Gemini/Grok) — read snapshot, paste, toast
 - ✅ Popup handoff buttons wired to claude tab via `wick:handoff` message
-- ✅ License validation call to Polar (placeholder org id)
 
 ## Core correctness (was BROKEN — the meter read the wrong API shape)
 - 🔴→✅ **Usage API response shape.** Plan assumed `session_usage.fraction` /
@@ -45,6 +44,5 @@ _Last updated: 2026-07-10_
 - 🟡 **Composer selectors** — 3 fallbacks; confirm the bar lands under the input.
 
 ## To do before Web Store
-- [ ] Set real `POLAR_ORG_ID` in `popup/popup.js`
 - [ ] Publish → set real `CHROME_STORE_URL` in landing
 - [ ] Live-test on claude.ai (see TESTING below), adjust selectors if needed

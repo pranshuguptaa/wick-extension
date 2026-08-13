@@ -60,7 +60,7 @@ Click the Wick toolbar icon. You should see:
 - Two arc gauges (session blue / weekly purple) with % + countdowns
 - A big "≈ N messages left"
 - Model pill (green)
-- Handoff buttons + license field
+- Handoff buttons
 
 Open it with **claude.ai closed** too — it should still show the last cached
 usage and "Cached · open claude.ai to refresh".
@@ -71,7 +71,7 @@ usage and "Cached · open claude.ai to refresh".
 2. A new tab opens; within a couple seconds the conversation (as Markdown)
    should be pasted into that tool's input, with a toast "Wick: conversation
    loaded ✓".
-3. Free tier allows **2/day**; the 3rd shows the upgrade modal.
+
 
 **If paste fails:** the destination changed its input selector. Console-inspect
 the input box on that site and send me the selector; each injector has a

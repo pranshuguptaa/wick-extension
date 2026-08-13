@@ -2,15 +2,14 @@
  * Wick — popup logic (vanilla JS), rebuilt.
  *
  * Reads cached/live usage from claude.ai and paints two SVG arc gauges,
- * a messages-left estimate, per-window countdowns, handoff buttons, and a
- * Polar.sh license activation field. Works even when claude.ai is closed
- * (falls back to the last cached usage; gauges show 0% / dashes if nothing).
+ * a messages-left estimate, per-window countdowns, and handoff buttons.
+ * Works even when claude.ai is closed (falls back to the last cached
+ * usage; gauges show 0% / dashes if nothing).
  */
 (() => {
   'use strict';
 
-  // TODO: replace with your real Polar organization id before shipping.
-  const POLAR_ORG_ID = 'e71540e4-673c-43a4-b335-da10833687a6';
+
 
   const MODEL_MULT = { opus: 5, sonnet: 2, haiku: 1 };
   const DELTA_WINDOW = 5;
@@ -139,7 +138,7 @@
   // ---- main render --------------------------------------------------------
   async function render() {
     const all = await storageGet(null);
-    const billing = all['wick:billing'] || { isPro: false };
+
     const orgId = await resolveOrgId(all['wick:orgId']);
 
     // current model: prefer what the content script last saw; else the model
@@ -222,11 +221,7 @@
       $('status').textContent = 'Log in at claude.ai to start metering';
     }
 
-    // pro / license
-    const isPro = !!(billing.isPro && billing.licenseKey);
-    $('pro-badge').hidden = !isPro;
-    $('license-form').style.display = isPro ? 'none' : 'flex';
-  }
+
 
   // ---- handoff (from popup) ----------------------------------------------
   function queryTabs(q) {
@@ -259,37 +254,7 @@
     $('status').textContent = 'Open a claude.ai conversation to hand off';
   }
 
-  // ---- license ------------------------------------------------------------
-  async function validateLicense(key) {
-    const msg = $('license-msg');
-    msg.className = 'license-msg';
-    msg.textContent = 'Checking…';
-    try {
-      const res = await fetch(
-        'https://api.polar.sh/v1/customer-portal/license-keys/validate',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key, organization_id: POLAR_ORG_ID }),
-        }
-      );
-      if (res.ok) {
-        const prev = (await storageGet('wick:billing'))['wick:billing'] || {};
-        await storageSet({
-          'wick:billing': { ...prev, licenseKey: key, validated: Date.now(), isPro: true },
-        });
-        msg.className = 'license-msg ok';
-        msg.textContent = 'Activated — thank you!';
-        setTimeout(render, 500);
-      } else {
-        msg.className = 'license-msg err';
-        msg.textContent = 'Invalid or expired license key.';
-      }
-    } catch (_e) {
-      msg.className = 'license-msg err';
-      msg.textContent = 'Network error — try again.';
-    }
-  }
+
 
   // ---- update banner ------------------------------------------------------
   // The service worker polls usewick.online/api/version and stashes the result in
@@ -320,11 +285,6 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.handoff-btn').forEach((btn) => {
       btn.addEventListener('click', () => handoff(btn.dataset.dest));
-    });
-    $('license-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const key = $('license-key').value.trim();
-      if (key) validateLicense(key);
     });
     renderUpdateBanner();
     render();

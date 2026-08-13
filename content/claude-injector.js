@@ -11,7 +11,7 @@
  *   GET /api/organizations/{orgId}/chat_conversations/{convId}
  *
  * Storage keys (chrome.storage.local):
- *   wick:orgId, wick:history:{model}, wick:billing, wick:pendingSnapshot
+ *   wick:orgId, wick:history:{model}, wick:pendingSnapshot
  */
 (() => {
   'use strict';
@@ -22,7 +22,7 @@
   const POLL_MS = 5000;
   const HISTORY_MAX = 20;
   const DELTA_WINDOW = 5;          // rolling avg over last N deltas
-  const FREE_DAILY_HANDOFFS = 2;   // free tier: 2/day
+
   const SNAPSHOT_TTL = 90000;      // 90s
   const MODEL_MULT = { opus: 5, sonnet: 2, haiku: 1 };
 
@@ -399,35 +399,9 @@
     return lines.join('\n');
   }
 
-  async function isPro() {
-    const b = (await storageGet('wick:billing'))['wick:billing'];
-    return !!(b && b.isPro && b.licenseKey);
-  }
 
-  async function incDaily() {
-    const b = (await storageGet('wick:billing'))['wick:billing'] || {
-      dailyCount: 0,
-    };
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (!b.lastReset || b.lastReset < today.getTime()) {
-      b.dailyCount = 0;
-      b.lastReset = today.getTime();
-    }
-    b.dailyCount = (b.dailyCount || 0) + 1;
-    await storageSet({ 'wick:billing': b });
-    return b.dailyCount;
-  }
 
-  async function underDailyLimit() {
-    const b = (await storageGet('wick:billing'))['wick:billing'] || {
-      dailyCount: 0,
-    };
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const count = !b.lastReset || b.lastReset < today.getTime() ? 0 : b.dailyCount || 0;
-    return count < FREE_DAILY_HANDOFFS;
-  }
+
 
   async function handoff(dest) {
     const destUrl = {
@@ -443,11 +417,7 @@
       return;
     }
 
-    // billing gate
-    if (!(await isPro()) && !(await underDailyLimit())) {
-      showUpgradeModal();
-      return;
-    }
+
 
     toast('Wick: exporting…');
     // tree=True&rendering_mode=messages reliably returns chat_messages with text
@@ -467,48 +437,12 @@
         ttl: SNAPSHOT_TTL,
       },
     });
-    if (!(await isPro())) await incDaily();
+
 
     chrome.runtime.sendMessage({ type: 'wick:openTab', url: destUrl });
   }
 
-  // ---- upgrade modal ------------------------------------------------------
-  function showUpgradeModal() {
-    if (document.getElementById('wick-modal')) return;
-    const overlay = document.createElement('div');
-    overlay.id = 'wick-modal';
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      inset: '0',
-      background: 'rgba(0,0,0,0.5)',
-      zIndex: '2147483647',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      font: '14px/1.5 ui-sans-serif, system-ui, sans-serif',
-    });
-    overlay.innerHTML = `
-      <div style="background:#fff;color:#111;max-width:360px;width:90%;
-        border-radius:14px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-        <div style="font-size:18px;font-weight:600;margin-bottom:8px;">
-          You've used your 2 free handoffs today</div>
-        <p style="opacity:.75;margin:0 0 18px;">Upgrade to Wick Pro for unlimited
-          cross-LLM handoffs — $2/mo or $20 lifetime.</p>
-        <div style="display:flex;gap:8px;">
-          <a href="https://wick.app/pricing" target="_blank"
-            style="flex:1;text-align:center;background:linear-gradient(90deg,#f59e0b,#fbbf24);
-            color:#1a1206;text-decoration:none;padding:10px;border-radius:8px;font-weight:600;">
-            Upgrade</a>
-          <button id="wick-modal-close" style="flex:0 0 auto;padding:10px 14px;
-            border:1px solid #ddd;background:#fff;border-radius:8px;cursor:pointer;">
-            Later</button>
-        </div>
-      </div>`;
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay || e.target.id === 'wick-modal-close') overlay.remove();
-    });
-    document.body.appendChild(overlay);
-  }
+
 
   // ---- toast --------------------------------------------------------------
   let toastTimer = null;
