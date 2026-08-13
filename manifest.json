@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Wick — Claude usage meter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Live token meter for Claude. Model-aware messages-left, reset countdown, one-click handoff to ChatGPT/Gemini/Grok.",
   "permissions": ["storage", "alarms", "tabs"],
   "host_permissions": [
